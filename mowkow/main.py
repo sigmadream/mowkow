@@ -182,6 +182,14 @@ def main():
     #global YY_reader: Reader
     # global IsVerbose
 
+    # 표준 입출력 인코딩을 UTF-8로 강제 설정 (Windows 환경의 cp949 문제 방지)
+    if sys.stdout and hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding.lower() != 'utf-8':
+        sys.stdout.reconfigure(encoding='utf-8')
+    if sys.stdin and hasattr(sys.stdin, 'reconfigure') and sys.stdin.encoding.lower() != 'utf-8':
+        sys.stdin.reconfigure(encoding='utf-8')
+    if sys.stderr and hasattr(sys.stderr, 'reconfigure') and sys.stderr.encoding.lower() != 'utf-8':
+        sys.stderr.reconfigure(encoding='utf-8')
+
     env = mkenv(nil)
 
     envset(env, mksym("머"), mkbuiltin(builtin_car))
