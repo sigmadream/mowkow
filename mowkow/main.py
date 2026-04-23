@@ -9,10 +9,10 @@ import sys
 import argparse
 from typing import Any, Optional, Iterable, NoReturn
 
-from _data import Data, nil, mksym, mkbuiltin
-from _parse import YY_reader, read_expr
-from _error import IsVerbose, eprint, ErrLisp
-from _eval import mkenv, envset, do_eval, \
+from mowkow._data import Data, nil, mksym, mkbuiltin
+from mowkow._parse import YY_reader, read_expr
+from mowkow._error import IsVerbose, eprint, ErrLisp
+from mowkow._eval import mkenv, envset, do_eval, \
         builtin_car, builtin_cdr, builtin_cons, \
         builtin_add, builtin_sub, builtin_mul, builtin_div, \
         builtin_inteq, builtin_intlt, builtin_intgt, \
