@@ -1,0 +1,82 @@
+name: Build and Release Executables
+
+on:
+  push:
+    tags:
+      - 'v*' # v1.0.0, v2.0 등의 태그가 push될 때 실행됩니다.
+  workflow_dispatch: # Actions 탭에서 수동으로도 실행할 수 있도록 허용합니다.
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: mk
+            asset_name: mk-linux
+            separator: ":"
+          - os: windows-latest
+            artifact_name: mk.exe
+            asset_name: mk-windows.exe
+            separator: ";"
+          - os: macos-latest
+            artifact_name: mk
+            asset_name: mk-macos
+            separator: ":"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # 필요에 따라 파이썬 버전 변경 가능
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+
+      - name: Build executable with PyInstaller
+        run: |
+          pyinstaller --onefile --name mk --add-data "library_kor.scm${{ matrix.separator }}." main.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: dist/${{ matrix.artifact_name }}
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') # 태그가 푸시되었을 때만 릴리스 생성
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List downloaded artifacts
+        run: ls -R artifacts
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/mk-linux/*
+            artifacts/mk-windows.exe/*
+            artifacts/mk-macos/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
